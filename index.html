@@ -487,7 +487,14 @@
       z-index: 10;
     }
 
+    /* PC：ホバーで表示 */
     .collage-cell:hover .cell-overlay {
+      background: rgba(0,0,0,0.18);
+      pointer-events: auto;
+    }
+
+    /* スマホ：タップでアクティブになったとき表示 */
+    .collage-cell.touch-active .cell-overlay {
       background: rgba(0,0,0,0.18);
       pointer-events: auto;
     }
@@ -505,16 +512,30 @@
       transform: translateY(0);
     }
 
+    /* スマホ：タップでアクティブになったとき表示 */
+    .collage-cell.touch-active .cell-controls {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* スマホ向け：⚙️ボタンを常時うっすら表示（見つけやすくする） */
+    @media (hover: none) {
+      .cell-controls {
+        opacity: 0.45;
+        transform: translateY(0);
+      }
+    }
+
     /* セルコントロールボタン */
     .cell-ctrl-btn {
-      width: 28px;
-      height: 28px;
+      width: 36px;   /* タッチしやすいサイズに拡大 */
+      height: 36px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.92);
       color: var(--text);
       border: none;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -809,8 +830,111 @@
     }
 
     /* ===================================
-       レスポンシブ
+       サイドバー（左右のバナー・広告枠）
        =================================== */
+    .page-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 0 12px;
+    }
+
+    .sidebar {
+      width: 160px;
+      flex-shrink: 0;
+      position: sticky;
+      top: 76px; /* ヘッダーの高さ分下げる */
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* バナー・広告の枠 */
+    .banner-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* バナーのリンクエリア */
+    .banner-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .banner-link:hover {
+      opacity: 0.85;
+    }
+
+    /* バナー画像が入る領域（画像未設定時のプレースホルダー） */
+    .banner-img-area {
+      width: 100%;
+      aspect-ratio: 1 / 1; /* 正方形。縦長にしたい場合は 1/2 など変更 */
+      background: linear-gradient(135deg, #e8f0fe, #d2e3fc);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 12px;
+    }
+
+    /* バナーに実際の画像を設定するときはここを使う */
+    .banner-img-area img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .banner-label {
+      font-size: 10px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 6px 4px;
+      border-top: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    /* 広告枠（縦長タイプ） */
+    .ad-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .ad-area {
+      width: 100%;
+      aspect-ratio: 1 / 2; /* 縦長 */
+      background: var(--surface-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 12px;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* サイドバーはスマホでは非表示 */
+    @media (max-width: 800px) {
+      .sidebar { display: none; }
+      .page-wrapper { padding: 0; }
+    }
     @media (max-width: 600px) {
       .header-subtitle { display: none; }
       .settings-grid { grid-template-columns: 1fr; }
@@ -958,7 +1082,7 @@
             <div class="color-swatch active" data-color="#ffffff" style="background:#fff; border: 1.5px solid #e0e0e0" title="白" onclick="setBgColor('#ffffff', this)"></div>
             <div class="color-swatch" data-color="#000000" style="background:#000" title="黒" onclick="setBgColor('#000000', this)"></div>
             <div class="color-swatch" data-color="#f8f8f8" style="background:#f8f8f8; border: 1.5px solid #e0e0e0" title="オフホワイト" onclick="setBgColor('#f8f8f8', this)"></div>
-            <div class="color-swatch" data-color="#1a1a2e" style="background:#1a1a2e" title="ネイビー" onclick="setBgColor('#1a1a2e', this)"></div>
+            <div class="color-swatch" data-color="#1a3a6e" style="background:#1a3a6e" title="ネイビー" onclick="setBgColor('#1a3a6e', this)"></div>
             <div class="color-swatch" data-color="#fce4ec" style="background:#fce4ec; border: 1.5px solid #e0e0e0" title="ピンク" onclick="setBgColor('#fce4ec', this)"></div>
             <input type="color" id="bgColorPicker" value="#ffffff" style="width:28px;height:28px;padding:1px;border-radius:50%;border:1.5px solid #e0e0e0;cursor:pointer;flex-shrink:0" title="カスタム" oninput="setBgColor(this.value, null)">
           </div>
@@ -1045,15 +1169,6 @@
   </div>
 
   <div class="slider-group">
-    <!-- ズーム -->
-    <div class="slider-row">
-      <div class="slider-label">
-        <span>🔍 ズーム</span>
-        <span class="slider-value" id="scaleLabel">100%</span>
-      </div>
-      <input type="range" id="scaleSlider" min="100" max="300" value="100" step="1"
-             oninput="updateCellScale(this.value)">
-    </div>
 
     <!-- 横方向の位置 -->
     <div class="slider-row">
@@ -1074,6 +1189,37 @@
       <input type="range" id="ySlider" min="-100" max="100" value="0" step="1"
              oninput="updateCellY(this.value)">
     </div>
+
+    <!-- ズーム -->
+    <div class="slider-row">
+      <div class="slider-label">
+        <span>🔍 ズーム</span>
+        <span class="slider-value" id="scaleLabel">100%</span>
+      </div>
+      <input type="range" id="scaleSlider" min="100" max="300" value="100" step="1"
+             oninput="updateCellScale(this.value)">
+    </div>
+
+    <!-- 明るさ -->
+    <div class="slider-row">
+      <div class="slider-label">
+        <span>☀️ 明るさ</span>
+        <span class="slider-value" id="brightnessLabel">標準</span>
+      </div>
+      <input type="range" id="brightnessSlider" min="0" max="200" value="100" step="1"
+             oninput="updateCellBrightness(this.value)">
+    </div>
+
+    <!-- コントラスト -->
+    <div class="slider-row">
+      <div class="slider-label">
+        <span>◑ コントラスト</span>
+        <span class="slider-value" id="contrastLabel">標準</span>
+      </div>
+      <input type="range" id="contrastSlider" min="0" max="200" value="100" step="1"
+             oninput="updateCellContrast(this.value)">
+    </div>
+
   </div>
 
 </div>
@@ -1281,8 +1427,8 @@ function handleFiles(files) {
       const dataUrl = e.target.result;
       images.push({ file, url: dataUrl, name: file.name });
 
-      // 変換情報の初期値
-      cellTransforms.push({ scale: 1, offsetX: 0, offsetY: 0 });
+      // 変換情報の初期値（brightness・contrast を追加）
+      cellTransforms.push({ scale: 1, offsetX: 0, offsetY: 0, brightness: 100, contrast: 100 });
 
       loaded++;
       // 全ファイルの読み込みが完了したら UI を更新
@@ -1577,6 +1723,11 @@ function applyTransform(container, imgEl, index) {
   const left = (cw - scaledW) / 2 + offsetPxX;
   const top = (ch - scaledH) / 2 + offsetPxY;
 
+  // 明るさ・コントラストを CSS filter で適用
+  const brightness = transform.brightness !== undefined ? transform.brightness : 100;
+  const contrast = transform.contrast !== undefined ? transform.contrast : 100;
+  imgEl.style.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+
   imgEl.style.left = left + 'px';
   imgEl.style.top = top + 'px';
 }
@@ -1588,31 +1739,44 @@ function applyTransform(container, imgEl, index) {
 /**
  * コンテナ内での画像パン（位置移動）イベントを設定する
  * マウスとタッチの両方に対応
+ * スマホでは touchstart を passive:false で登録して preventDefault を有効にする
  */
 function setupImagePan(container, index) {
-  let startX, startY, startOX, startOY, isPanning = false;
+  let startX, startY, startOX, startOY;
+  let isPanning = false;
+  let moved = false; // タップか移動かを判定するフラグ
 
   function onStart(e) {
-    // セルの入れ替えドラッグと競合しないよう、셀レベルのdragstartとは分離している
-    // ただしポインタイベントを使い、入れ替えボタンを押したときは無視する
     if (e.target.classList.contains('cell-ctrl-btn')) return;
-    isPanning = true;
 
     const pt = e.touches ? e.touches[0] : e;
     startX = pt.clientX;
     startY = pt.clientY;
     startOX = cellTransforms[index].offsetX || 0;
     startOY = cellTransforms[index].offsetY || 0;
+    isPanning = true;
+    moved = false;
 
-    e.preventDefault();
-    e.stopPropagation(); // セルDnDへの伝播を止める
+    // タッチの場合はページスクロールを止める
+    if (e.touches) {
+      e.preventDefault();
+    }
+    e.stopPropagation();
   }
 
   function onMove(e) {
     if (!isPanning) return;
+
     const pt = e.touches ? e.touches[0] : e;
     const dx = pt.clientX - startX;
     const dy = pt.clientY - startY;
+
+    // 3px以上動いたら「移動」と判定
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      moved = true;
+    }
+
+    if (!moved) return;
 
     const imgEl = container.querySelector('.cell-image');
     if (!imgEl) return;
@@ -1625,7 +1789,6 @@ function setupImagePan(container, index) {
     const maxOffsetX = Math.max(0, (scaledW - cw) / 2);
     const maxOffsetY = Math.max(0, (scaledH - ch) / 2);
 
-    // ピクセルを -1〜1 の正規化された値に変換
     const newOX = maxOffsetX > 0 ? Math.max(-1, Math.min(1, startOX + dx / maxOffsetX)) : 0;
     const newOY = maxOffsetY > 0 ? Math.max(-1, Math.min(1, startOY + dy / maxOffsetY)) : 0;
 
@@ -1633,19 +1796,47 @@ function setupImagePan(container, index) {
     cellTransforms[index].offsetY = newOY;
 
     applyTransform(container, imgEl, index);
+
+    if (e.touches) e.preventDefault();
   }
 
-  function onEnd() {
+  function onEnd(e) {
+    if (!isPanning) return;
     isPanning = false;
+
+    // 動いていない（タップ）場合は touch-active トグル処理を行う
+    if (!moved && e.type === 'touchend') {
+      const cell = container.closest('.collage-cell');
+      if (cell) {
+        // 他のセルの touch-active を解除
+        document.querySelectorAll('.collage-cell.touch-active').forEach(c => {
+          if (c !== cell) c.classList.remove('touch-active');
+        });
+        cell.classList.toggle('touch-active');
+      }
+    }
   }
 
+  // マウスイベント（PC用）
   container.addEventListener('mousedown', onStart);
-  container.addEventListener('touchstart', onStart, { passive: false });
   window.addEventListener('mousemove', onMove);
-  window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('mouseup', onEnd);
+
+  // タッチイベント（スマホ用）
+  // passive:false にすることで preventDefault() が使えるようになる
+  container.addEventListener('touchstart', onStart, { passive: false });
+  window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onEnd);
 }
+
+// 画面のどこか（セル外）をタップしたら touch-active を解除する
+document.addEventListener('touchstart', (e) => {
+  if (!e.target.closest('.collage-cell')) {
+    document.querySelectorAll('.collage-cell.touch-active').forEach(c => {
+      c.classList.remove('touch-active');
+    });
+  }
+});
 
 // =========================================================
 // セルのドラッグ＆ドロップ（コマ入れ替え）
@@ -1707,12 +1898,19 @@ function openEditPanel(index) {
   const t = cellTransforms[index];
 
   // スライダーの値を同期
+  document.getElementById('xSlider').value = Math.round((t.offsetX || 0) * 100);
+  document.getElementById('xLabel').textContent = formatOffset(t.offsetX);
+  document.getElementById('ySlider').value = Math.round((t.offsetY || 0) * 100);
+  document.getElementById('yLabel').textContent = formatOffset(t.offsetY);
   document.getElementById('scaleSlider').value = Math.round((t.scale || 1) * 100);
   document.getElementById('scaleLabel').textContent = Math.round((t.scale || 1) * 100) + '%';
-  document.getElementById('xSlider').value = Math.round((t.offsetX || 0) * 100);
-  document.getElementById('ySlider').value = Math.round((t.offsetY || 0) * 100);
-  document.getElementById('xLabel').textContent = formatOffset(t.offsetX);
-  document.getElementById('yLabel').textContent = formatOffset(t.offsetY);
+
+  const brightness = t.brightness !== undefined ? t.brightness : 100;
+  const contrast   = t.contrast  !== undefined ? t.contrast  : 100;
+  document.getElementById('brightnessSlider').value = brightness;
+  document.getElementById('brightnessLabel').textContent = formatFilterLabel(brightness);
+  document.getElementById('contrastSlider').value = contrast;
+  document.getElementById('contrastLabel').textContent = formatFilterLabel(contrast);
 
   document.getElementById('editPanel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
@@ -1753,13 +1951,19 @@ function updateCellY(value) {
 /** 変換情報をリセット */
 function resetCellTransform() {
   if (editingCellIndex < 0) return;
-  cellTransforms[editingCellIndex] = { scale: 1, offsetX: 0, offsetY: 0 };
-  document.getElementById('scaleSlider').value = 100;
-  document.getElementById('scaleLabel').textContent = '100%';
+  cellTransforms[editingCellIndex] = { scale: 1, offsetX: 0, offsetY: 0, brightness: 100, contrast: 100 };
+
   document.getElementById('xSlider').value = 0;
   document.getElementById('xLabel').textContent = '中央';
   document.getElementById('ySlider').value = 0;
   document.getElementById('yLabel').textContent = '中央';
+  document.getElementById('scaleSlider').value = 100;
+  document.getElementById('scaleLabel').textContent = '100%';
+  document.getElementById('brightnessSlider').value = 100;
+  document.getElementById('brightnessLabel').textContent = '標準';
+  document.getElementById('contrastSlider').value = 100;
+  document.getElementById('contrastLabel').textContent = '標準';
+
   applyTransformByIndex(editingCellIndex);
 }
 
@@ -1776,6 +1980,31 @@ function applyTransformByIndex(index) {
       applyTransform(container, imgEl, index);
     });
   });
+}
+
+/** 明るさスライダーの変更 */
+function updateCellBrightness(value) {
+  if (editingCellIndex < 0) return;
+  cellTransforms[editingCellIndex].brightness = parseInt(value);
+  document.getElementById('brightnessLabel').textContent = formatFilterLabel(parseInt(value));
+  applyTransformByIndex(editingCellIndex);
+}
+
+/** コントラストスライダーの変更 */
+function updateCellContrast(value) {
+  if (editingCellIndex < 0) return;
+  cellTransforms[editingCellIndex].contrast = parseInt(value);
+  document.getElementById('contrastLabel').textContent = formatFilterLabel(parseInt(value));
+  applyTransformByIndex(editingCellIndex);
+}
+
+/**
+ * 明るさ・コントラストの値を表示文字列に変換する
+ * 100 = 標準、100未満 = 暗い/低い、100超 = 明るい/高い
+ */
+function formatFilterLabel(val) {
+  if (val === 100) return '標準';
+  return val < 100 ? `${val}%（低）` : `${val}%（高）`;
 }
 
 /** オフセット値の表示文字列変換 */
