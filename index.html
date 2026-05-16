@@ -987,7 +987,7 @@
 <header class="header">
   <div class="header-logo"></div>
   <h1 class="header-title">コラージュメーカー</h1>
-  <span class="header-subtitle">2〜4枚の写真で簡単コラージュ作成！</span>
+  <span class="header-subtitle">2〜4枚の写真でコラージュを作成</span>
 </header>
 
 <!-- ===== メインコンテンツ ===== -->
@@ -1051,8 +1051,9 @@
     <div class="card-body" style="padding: 12px">
 
       <!-- ガイドテキスト（スマホ向け） -->
-      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px; text-align:center; line-height:1.5;">
-        💡 画像をドラッグして位置を調整 ／ ⚙️ ボタンで詳細調整
+      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px; text-align:center; line-height:1.8;">
+        💡 画像をドラッグして位置を調整 ／ ⚙️ ボタンで詳細調整<br>
+        <span style="font-size:11px;">🔄 入れ替え：⚙️を出した状態で別の写真をタップ（スマホ） ／ ドラッグ＆ドロップ（PC）</span>
       </div>
 
       <!-- コラージュ本体 -->
@@ -1859,22 +1860,26 @@ document.addEventListener('touchstart', (e) => {
 });
 
 // =========================================================
-// セルのドラッグ＆ドロップ（コマ入れ替え）
+// セルのコマ入れ替え（PC：ドラッグ＆ドロップ／スマホ：タップ2回）
 // =========================================================
 
-let dragSourceIndex = -1; // ドラッグ元のセルインデックス
+let dragSourceIndex = -1;  // PCドラッグ元のインデックス
+let swapSourceIndex = -1;  // スマホタップ入れ替えの1枚目インデックス
 
 /**
- * セルのドラッグ＆ドロップによる並び替えイベントを設定する
+ * セルの入れ替えイベントを設定する
+ * PC  : ドラッグ＆ドロップ
+ * スマホ: ⚙️ボタンが出ている状態（touch-active）で別のコマをタップすると入れ替え
  */
 function setupCellDragDrop(cell, index) {
+
+  // ----- PC用：ドラッグ＆ドロップ -----
   cell.draggable = true;
 
   cell.addEventListener('dragstart', (e) => {
     dragSourceIndex = index;
     cell.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
-    // ゴーストを小さくしたい場合はここで設定
   });
 
   cell.addEventListener('dragend', () => {
@@ -1885,9 +1890,7 @@ function setupCellDragDrop(cell, index) {
 
   cell.addEventListener('dragover', (e) => {
     e.preventDefault();
-    if (dragSourceIndex !== index) {
-      cell.classList.add('drag-target');
-    }
+    if (dragSourceIndex !== index) cell.classList.add('drag-target');
   });
 
   cell.addEventListener('dragleave', () => {
@@ -1897,16 +1900,67 @@ function setupCellDragDrop(cell, index) {
   cell.addEventListener('drop', (e) => {
     e.preventDefault();
     cell.classList.remove('drag-target');
-
     if (dragSourceIndex !== -1 && dragSourceIndex !== index) {
-      // 画像データと変換情報をスワップ
-      [images[dragSourceIndex], images[index]] = [images[index], images[dragSourceIndex]];
-      [cellTransforms[dragSourceIndex], cellTransforms[index]] = [cellTransforms[index], cellTransforms[dragSourceIndex]];
-      renderCollage();
-      showToast('画像を入れ替えました');
+      swapCells(dragSourceIndex, index);
     }
   });
+
+  // ----- スマホ用：タップ2回で入れ替え -----
+  // touch-active 状態（⚙️が出ている）のセルをタップしたとき
+  cell.addEventListener('touchend', (e) => {
+    // 歯車ボタン自体のタップは無視
+    if (e.target.classList.contains('cell-ctrl-btn')) return;
+
+    if (swapSourceIndex === -1) {
+      // 1枚目の選択：touch-active なセルをタップしたとき入れ替えモードに入る
+      if (cell.classList.contains('touch-active')) {
+        swapSourceIndex = index;
+        // 選択中であることを枠で示す
+        cell.style.outline = '3px solid #1a73e8';
+        showToast('入れ替えたいコマをタップしてください');
+        e.stopPropagation();
+      }
+    } else {
+      // 2枚目の選択：別のコマをタップしたら入れ替え実行
+      if (swapSourceIndex !== index) {
+        // 選択中の枠を消す
+        document.querySelectorAll('.collage-cell').forEach(c => c.style.outline = '');
+        swapCells(swapSourceIndex, index);
+        swapSourceIndex = -1;
+        e.stopPropagation();
+      } else {
+        // 同じコマをタップ→キャンセル
+        cancelSwapMode();
+      }
+    }
+  }, { passive: true });
 }
+
+/** 入れ替えモードをキャンセルする */
+function cancelSwapMode() {
+  swapSourceIndex = -1;
+  document.querySelectorAll('.collage-cell').forEach(c => c.style.outline = '');
+}
+
+/** 2つのセルの画像と変換情報を入れ替えて再描画する */
+function swapCells(indexA, indexB) {
+  [images[indexA], images[indexB]] = [images[indexB], images[indexA]];
+  [cellTransforms[indexA], cellTransforms[indexB]] = [cellTransforms[indexB], cellTransforms[indexA]];
+  // touch-active・outline をリセット
+  document.querySelectorAll('.collage-cell').forEach(c => {
+    c.classList.remove('touch-active');
+    c.style.outline = '';
+  });
+  renderCollage();
+  showToast('画像を入れ替えました');
+}
+
+// 画面外タップでキャンセル
+document.addEventListener('touchstart', (e) => {
+  if (!e.target.closest('.collage-cell') && swapSourceIndex !== -1) {
+    cancelSwapMode();
+  }
+});
 
 // =========================================================
 // 編集パネル（ズーム・位置）
@@ -2126,15 +2180,26 @@ async function downloadCollage(format) {
 
   showToast('画像を生成中...');
 
+  // ダウンロード前にオーバーレイ・touch-active を非表示にする
+  // （⚙️ボタンが画像に写り込まないようにする）
+  const overlays = area.querySelectorAll('.cell-overlay');
+  const activeCells = area.querySelectorAll('.collage-cell.touch-active');
+
+  overlays.forEach(el => el.style.display = 'none');
+  activeCells.forEach(el => el.classList.remove('touch-active'));
+
   try {
     const canvas = await html2canvas(area, {
-      scale: EXPORT_SCALE,           // 高解像度出力
+      scale: EXPORT_SCALE,
       useCORS: true,
       allowTaint: true,
       backgroundColor: getComputedStyle(document.documentElement)
                          .getPropertyValue('--bg-color').trim() || '#ffffff',
       logging: false
     });
+
+    // 撮影が終わったらオーバーレイを元に戻す
+    overlays.forEach(el => el.style.display = '');
 
     // Canvas を Blob に変換してダウンロード
     canvas.toBlob((blob) => {
@@ -2154,6 +2219,8 @@ async function downloadCollage(format) {
     }, `image/${format}`, format === 'jpeg' ? 0.92 : undefined);
 
   } catch (err) {
+    // エラー時もオーバーレイを元に戻す
+    overlays.forEach(el => el.style.display = '');
     console.error('ダウンロードエラー:', err);
     showToast('エラー: 画像の生成に失敗しました');
   }
