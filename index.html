@@ -1050,10 +1050,9 @@
     </div>
     <div class="card-body" style="padding: 12px">
 
-      <!-- ガイドテキスト（スマホ向け） -->
       <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px; text-align:center; line-height:1.8;">
-        💡 画像をドラッグして位置を調整 ／ ⚙️ ボタンで詳細調整<br>
-        <span style="font-size:11px;">🔄 入れ替え：⚙️を出した状態で別の写真をタップ（スマホ） ／ ドラッグ＆ドロップ（PC）</span>
+        💡 写真をドラッグして位置を調整 ／ ⚙️ ボタンで詳細調整<br>
+        <span style="font-size:11px;">🔄 入れ替え：⚙️を開いて「入れ替え」→ 別の写真をタップ（スマホ） ／ ドラッグ＆ドロップ（PC）</span>
       </div>
 
       <!-- コラージュ本体 -->
@@ -1184,8 +1183,9 @@
 <div class="edit-panel" id="editPanel">
   <div class="edit-panel-handle"></div>
   <div class="edit-panel-title">
-    <span>🔍 画像を調整</span>
+    <span>⚙️ 画像を調整</span>
     <button class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="resetCellTransform()">リセット</button>
+    <button class="btn btn-sm btn-outline" onclick="startSwapMode(editingCellIndex)">🔄 入れ替え</button>
     <button class="btn btn-sm btn-secondary" onclick="closeEditPanel()">閉じる</button>
   </div>
 
@@ -1860,16 +1860,16 @@ document.addEventListener('touchstart', (e) => {
 });
 
 // =========================================================
-// セルのコマ入れ替え（PC：ドラッグ＆ドロップ／スマホ：タップ2回）
+// セルのコマ入れ替え（PC：ドラッグ＆ドロップ／スマホ：⚙️ボタン→別コマタップ）
 // =========================================================
 
 let dragSourceIndex = -1;  // PCドラッグ元のインデックス
-let swapSourceIndex = -1;  // スマホタップ入れ替えの1枚目インデックス
+let swapSourceIndex = -1;  // スマホ入れ替えの1枚目インデックス
 
 /**
  * セルの入れ替えイベントを設定する
  * PC  : ドラッグ＆ドロップ
- * スマホ: ⚙️ボタンが出ている状態（touch-active）で別のコマをタップすると入れ替え
+ * スマホ: ⚙️ボタンを長押し or 入れ替えボタン経由でモード開始 → 別のコマをタップ
  */
 function setupCellDragDrop(cell, index) {
 
@@ -1905,48 +1905,52 @@ function setupCellDragDrop(cell, index) {
     }
   });
 
-  // ----- スマホ用：タップ2回で入れ替え -----
-  // touch-active 状態（⚙️が出ている）のセルをタップしたとき
+  // ----- スマホ用：入れ替えモード中に別コマをタップ -----
+  // （入れ替えモードの開始は startSwapMode() で行う）
   cell.addEventListener('touchend', (e) => {
-    // 歯車ボタン自体のタップは無視
-    if (e.target.classList.contains('cell-ctrl-btn')) return;
-
-    if (swapSourceIndex === -1) {
-      // 1枚目の選択：touch-active なセルをタップしたとき入れ替えモードに入る
-      if (cell.classList.contains('touch-active')) {
-        swapSourceIndex = index;
-        // 選択中であることを枠で示す
-        cell.style.outline = '3px solid #1a73e8';
-        showToast('入れ替えたいコマをタップしてください');
-        e.stopPropagation();
-      }
-    } else {
-      // 2枚目の選択：別のコマをタップしたら入れ替え実行
-      if (swapSourceIndex !== index) {
-        // 選択中の枠を消す
-        document.querySelectorAll('.collage-cell').forEach(c => c.style.outline = '');
-        swapCells(swapSourceIndex, index);
-        swapSourceIndex = -1;
-        e.stopPropagation();
-      } else {
-        // 同じコマをタップ→キャンセル
-        cancelSwapMode();
-      }
+    // 入れ替えモード中でなければ何もしない
+    if (swapSourceIndex === -1) return;
+    // 同じコマはキャンセル扱い
+    if (swapSourceIndex === index) {
+      cancelSwapMode();
+      return;
     }
-  }, { passive: true });
+    // 別のコマをタップ → 入れ替え実行
+    swapCells(swapSourceIndex, index);
+    e.preventDefault();
+    e.stopPropagation();
+  }, { passive: false });
+}
+
+/**
+ * スマホ用の入れ替えモードを開始する
+ * ⚙️ボタンの隣に表示する「入れ替え」ボタンから呼び出す
+ * @param {number} index 入れ替え元のセルインデックス
+ */
+function startSwapMode(index) {
+  swapSourceIndex = index;
+
+  // 選択中セルに青枠を表示
+  document.querySelectorAll('.collage-cell').forEach((c, i) => {
+    c.style.outline = i === index ? '3px solid #1a73e8' : '';
+  });
+
+  showToast('入れ替えたい写真をタップしてください（同じ写真でキャンセル）', 4000);
+  closeEditPanel();
 }
 
 /** 入れ替えモードをキャンセルする */
 function cancelSwapMode() {
   swapSourceIndex = -1;
   document.querySelectorAll('.collage-cell').forEach(c => c.style.outline = '');
+  showToast('入れ替えをキャンセルしました');
 }
 
 /** 2つのセルの画像と変換情報を入れ替えて再描画する */
 function swapCells(indexA, indexB) {
   [images[indexA], images[indexB]] = [images[indexB], images[indexA]];
   [cellTransforms[indexA], cellTransforms[indexB]] = [cellTransforms[indexB], cellTransforms[indexA]];
-  // touch-active・outline をリセット
+  swapSourceIndex = -1;
   document.querySelectorAll('.collage-cell').forEach(c => {
     c.classList.remove('touch-active');
     c.style.outline = '';
@@ -1957,7 +1961,8 @@ function swapCells(indexA, indexB) {
 
 // 画面外タップでキャンセル
 document.addEventListener('touchstart', (e) => {
-  if (!e.target.closest('.collage-cell') && swapSourceIndex !== -1) {
+  if (swapSourceIndex === -1) return;
+  if (!e.target.closest('.collage-cell')) {
     cancelSwapMode();
   }
 });
@@ -2178,7 +2183,7 @@ async function downloadCollage(format) {
   const area = document.getElementById('collage-area');
   if (!area) return;
 
-  showToast('画像を生成中...');
+  showToast('ダウンロードしています...');
 
   // ダウンロード前にオーバーレイ・touch-active を非表示にする
   // （⚙️ボタンが画像に写り込まないようにする）
@@ -2215,7 +2220,6 @@ async function downloadCollage(format) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      showToast('ダウンロードしました！');
     }, `image/${format}`, format === 'jpeg' ? 0.92 : undefined);
 
   } catch (err) {
